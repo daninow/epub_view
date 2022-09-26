@@ -36,7 +36,7 @@ class EpubViewTableOfContents extends StatelessWidget {
               itemBuilder: (context, index) =>
                   itemBuilder?.call(context, index, data[index], data.length) ??
                   ListTile(
-                    title: Text(data[index].title!.trim()),
+                    title: Text(data[index].title?.trim() ?? ''),
                     onTap: () =>
                         controller.scrollTo(index: data[index].startIndex),
                   ),
