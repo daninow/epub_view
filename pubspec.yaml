@@ -12,11 +12,11 @@ dependencies:
     sdk: flutter
   epubx:
     git:
-      url: https://github.com/brian-quah/epubx.dart.git
+      url: https://github.com/daninow/epubx.dart.git
       ref: feature/spine-test
   equatable: ^2.0.3
   html: ^0.15.0
-  flutter_html: ^3.0.0-alpha.2
+  flutter_html: ^3.0.0-alpha.5
   scrollable_positioned_list: ^0.2.3
   collection: ^1.15.0
   universal_file: ^1.0.0
