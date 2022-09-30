@@ -116,6 +116,7 @@ class EpubController {
   void _reloadView() async {
     isBookLoaded.value = false;
     try {
+      _cacheTableOfContents = null;
       loadingState.value = EpubViewLoadingState.loading;
       var css = document!.Content?.Css;
       _style = Style.fromCss(
@@ -125,11 +126,9 @@ class EpubController {
               '',
           (_, __) => null);
 
-      if (_epubViewState != null) {
-        await _epubViewState?._init();
-        tableOfContentsListenable.value = tableOfContents();
-        loadingState.value = EpubViewLoadingState.success;
-      }
+      await _epubViewState?._init();
+      tableOfContentsListenable.value = tableOfContents();
+      loadingState.value = EpubViewLoadingState.success;
     } catch (error) {
       _epubViewState?._loadingError = error is Exception
           ? error
