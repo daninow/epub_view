@@ -105,11 +105,11 @@ class EpubController {
               css?.entries.firstOrNull?.value.Content ??
               '',
           (_, __) => null);
-      await _epubViewState!._init();
+      await _epubViewState?._init();
       tableOfContentsListenable.value = tableOfContents();
       loadingState.value = EpubViewLoadingState.success;
     } catch (error) {
-      _epubViewState!._loadingError = error is Exception
+      _epubViewState?._loadingError = error is Exception
           ? error
           : Exception('An unexpected error occurred');
       loadingState.value = EpubViewLoadingState.error;
