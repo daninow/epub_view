@@ -105,7 +105,7 @@ class EpubController {
               css?.entries.firstOrNull?.value.Content ??
               '',
           (_, __) => null);
-      await _epubViewState?._init();
+      await _epubViewState?._init(document);
       tableOfContentsListenable.value = tableOfContents();
       loadingState.value = EpubViewLoadingState.success;
     } catch (error) {
@@ -130,10 +130,10 @@ class EpubController {
 
   void _attach(_EpubViewState epubReaderViewState) {
     _epubViewState = epubReaderViewState;
-    _epubViewState?._init();
-    // if (document != null){
-    //   _loadDocument(document);
-    // }
+
+    if (document != null) {
+      _epubViewState?._init(document!);
+    }
   }
 
   void _detach() {

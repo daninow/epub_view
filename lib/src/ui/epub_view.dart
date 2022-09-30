@@ -95,13 +95,11 @@ class _EpubViewState extends State<EpubView> {
     super.dispose();
   }
 
-  Future<bool> _init() async {
-    if (_controller.isBookLoaded.value) {
-      return true;
-    }
-    _chapters = parseChapters(_controller.document!);
-    final parseParagraphsResult =
-        parseParagraphs(_chapters, _controller.document!.Content);
+  Future<bool> _init(EpubBook epubBook) async {
+    _controller.document = epubBook;
+
+    _chapters = parseChapters(epubBook);
+    final parseParagraphsResult = parseParagraphs(_chapters, epubBook.Content);
     _paragraphs = parseParagraphsResult.flatParagraphs;
     _chapterIndexes.addAll(parseParagraphsResult.chapterIndexes);
 
