@@ -2,11 +2,11 @@ part of 'ui/epub_view.dart';
 
 class EpubController {
   EpubController({
-    required this.document,
+    this.document,
     this.epubCfi,
   });
 
-  Future<EpubBook> document;
+  Future<EpubBook>? document;
   final String? epubCfi;
 
   _EpubViewState? _epubViewState;
@@ -138,7 +138,9 @@ class EpubController {
   void _attach(_EpubViewState epubReaderViewState) {
     _epubViewState = epubReaderViewState;
 
-    _loadDocument(document);
+    // if (document != null){
+    //   _loadDocument(document);
+    // }
   }
 
   void _detach() {
