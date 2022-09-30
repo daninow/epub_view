@@ -130,10 +130,7 @@ class EpubController {
 
   void _attach(_EpubViewState epubReaderViewState) {
     _epubViewState = epubReaderViewState;
-
-    if (document != null) {
-      _epubViewState?._init(document!);
-    }
+    _epubViewState?._buildLoaded(epubReaderViewState.context);
   }
 
   void _detach() {
