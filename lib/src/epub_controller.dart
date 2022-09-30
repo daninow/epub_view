@@ -1,17 +1,11 @@
 part of 'ui/epub_view.dart';
 
 class EpubController {
-  EpubController({
-    this.document,
-    this.epubCfi,
-  });
-
-  EpubBook? document;
-  final String? epubCfi;
-
   _EpubViewState? _epubViewState;
   List<EpubViewChapter>? _cacheTableOfContents;
   Map<String, Style>? _style;
+
+  EpubBook? document;
 
   EpubChapterViewValue? get currentValue => _epubViewState?._currentValue;
 
@@ -94,26 +88,8 @@ class EpubController {
     );
   }
 
-  Future<void> loadDocument(EpubBook document) async {
+  void setDocument(EpubBook document) {
     this.document = document;
-    isBookLoaded.value = false;
-    try {
-      loadingState.value = EpubViewLoadingState.loading;
-      var css = document.Content?.Css;
-      _style = Style.fromCss(
-          css?['Styles/stylesheet.css']?.Content ??
-              css?['styles/stylesheet.css']?.Content ??
-              css?.entries.firstOrNull?.value.Content ??
-              '',
-          (_, __) => null);
-      tableOfContentsListenable.value = tableOfContents();
-      loadingState.value = EpubViewLoadingState.success;
-    } catch (error) {
-      _epubViewState?._loadingError = error is Exception
-          ? error
-          : Exception('An unexpected error occurred');
-      loadingState.value = EpubViewLoadingState.error;
-    }
   }
 
   void dispose() {
@@ -130,9 +106,34 @@ class EpubController {
 
   void _attach(_EpubViewState epubReaderViewState) {
     _epubViewState = epubReaderViewState;
+    _reloadView();
   }
 
   void _detach() {
     _epubViewState = null;
+  }
+
+  void _reloadView() async {
+    isBookLoaded.value = false;
+    try {
+      _cacheTableOfContents = null;
+      loadingState.value = EpubViewLoadingState.loading;
+      var css = document!.Content?.Css;
+      _style = Style.fromCss(
+          css?['Styles/stylesheet.css']?.Content ??
+              css?['styles/stylesheet.css']?.Content ??
+              css?.entries.firstOrNull?.value.Content ??
+              '',
+          (_, __) => null);
+
+      await _epubViewState?._init();
+      tableOfContentsListenable.value = tableOfContents();
+      loadingState.value = EpubViewLoadingState.success;
+    } catch (error) {
+      _epubViewState?._loadingError = error is Exception
+          ? error
+          : Exception('An unexpected error occurred');
+      loadingState.value = EpubViewLoadingState.error;
+    }
   }
 }

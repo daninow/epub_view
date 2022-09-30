@@ -70,21 +70,22 @@ class _EpubViewState extends State<EpubView> {
     _itemScrollController = ItemScrollController();
     _itemPositionListener = ItemPositionsListener.create();
     _controller._attach(this);
-    // _controller.loadingState.addListener(() {
-    //   switch (_controller.loadingState.value) {
-    //     case EpubViewLoadingState.loading:
-    //       break;
-    //     case EpubViewLoadingState.success:
-    //       widget.onDocumentLoaded?.call(_controller.document!);
-    //       break;
-    //     case EpubViewLoadingState.error:
-    //       widget.onDocumentError?.call(_loadingError);
-    //       break;
-    //   }
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-    // });
+    _controller.loadingState.addListener(() {
+      switch (_controller.loadingState.value) {
+        case EpubViewLoadingState.loading:
+          break;
+        case EpubViewLoadingState.success:
+          widget.onDocumentLoaded?.call(_controller.document!);
+          break;
+        case EpubViewLoadingState.error:
+          widget.onDocumentError?.call(_loadingError);
+          break;
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -92,6 +93,24 @@ class _EpubViewState extends State<EpubView> {
     _itemPositionListener!.itemPositions.removeListener(_changeListener);
     _controller._detach();
     super.dispose();
+  }
+
+  Future<bool> _init() async {
+    _chapters = parseChapters(_controller.document!);
+    final parseParagraphsResult =
+        parseParagraphs(_chapters, _controller.document!.Content);
+    _paragraphs = parseParagraphsResult.flatParagraphs;
+    _chapterIndexes.addAll(parseParagraphsResult.chapterIndexes);
+
+    _epubCfiReader = EpubCfiReader.parser(
+      cfiInput: '',
+      chapters: _chapters,
+      paragraphs: _paragraphs,
+    );
+    _itemPositionListener!.itemPositions.addListener(_changeListener);
+    _controller.isBookLoaded.value = true;
+
+    return true;
   }
 
   void _changeListener() {

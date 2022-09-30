@@ -76,23 +76,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late EpubController _epubReaderController;
+  var assetName = 'assets/book_3.epub';
 
   @override
   void initState() {
     _epubReaderController = EpubController();
-    EpubDocument.openAsset('assets/New-Findings-on-Shirdi-Sai-Baba.epub')
-        .then((document) {
-      _epubReaderController.loadDocument(document);
-    });
-
-    // _epubReaderController = EpubController(
-    //   document:
-    //       EpubDocument.openAsset('assets/New-Findings-on-Shirdi-Sai-Baba.epub'),
-    //   // epubCfi:
-    //   //     'epubcfi(/6/26[id4]!/4/2/2[id4]/22)', // book.epub Chapter 3 paragraph 10
-    //   // epubCfi:
-    //   //     'epubcfi(/6/6[chapter-2]!/4/2/1612)', // book_2.epub Chapter 16 paragraph 3
-    // );
     super.initState();
   }
 
@@ -103,34 +91,62 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: EpubViewActualChapter(
-            controller: _epubReaderController,
-            builder: (chapterValue) => Text(
-              chapterValue?.chapter?.Title?.replaceAll('\n', '').trim() ?? '',
-              textAlign: TextAlign.start,
-            ),
-          ),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.save_alt),
-              color: Colors.white,
-              onPressed: () => _showCurrentEpubCfi(context),
-            ),
-          ],
-        ),
-        drawer: Drawer(
-          child: EpubViewTableOfContents(controller: _epubReaderController),
-        ),
-        body: EpubView(
-          builders: EpubViewBuilders<DefaultBuilderOptions>(
-            options: const DefaultBuilderOptions(),
-            chapterDividerBuilder: (_) => const Divider(),
-          ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: EpubViewActualChapter(
           controller: _epubReaderController,
+          builder: (chapterValue) => Text(
+            chapterValue?.chapter?.Title?.replaceAll('\n', '').trim() ?? '',
+            textAlign: TextAlign.start,
+          ),
         ),
-      );
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.save_alt),
+            color: Colors.white,
+            onPressed: () => _showCurrentEpubCfi(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.deblur),
+            color: Colors.white,
+            onPressed: () {
+              setState(() {
+                assetName = 'assets/New-Findings-on-Shirdi-Sai-Baba.epub';
+              });
+            },
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: EpubViewTableOfContents(controller: _epubReaderController),
+      ),
+      body: FutureBuilder<EpubBook>(
+          future: EpubDocument.openAsset(assetName),
+          builder: (context, snapshot) {
+            if (snapshot.hasData &&
+                snapshot.connectionState == ConnectionState.done) {
+              _epubReaderController.setDocument(snapshot.requireData);
+              return EpubView(
+                builders: EpubViewBuilders<DefaultBuilderOptions>(
+                  options: const DefaultBuilderOptions(),
+                  chapterDividerBuilder: (_) => const Divider(),
+                ),
+                controller: _epubReaderController,
+              );
+            }
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Center(
+                    child:
+                        Text("LOADING - ${DateTime.now().toIso8601String()}"))
+              ],
+            );
+          }),
+    );
+  }
 
   void _showCurrentEpubCfi(context) {
     final cfi = _epubReaderController.generateEpubCfi();
