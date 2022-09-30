@@ -1,18 +1,11 @@
 part of 'ui/epub_view.dart';
 
 class EpubController {
-  EpubController({
-    required this.document,
-    this.epubCfi,
-  });
-
-  Future<EpubBook> document;
-  final String? epubCfi;
-
   _EpubViewState? _epubViewState;
   List<EpubViewChapter>? _cacheTableOfContents;
-  EpubBook? _document;
   Map<String, Style>? _style;
+
+  EpubBook? document;
 
   EpubChapterViewValue? get currentValue => _epubViewState?._currentValue;
 
@@ -58,7 +51,7 @@ class EpubController {
   }
 
   String? generateEpubCfi() => _epubViewState?._epubCfiReader?.generateCfi(
-        book: _document,
+        book: document,
         chapter: _epubViewState?._currentValue?.chapter,
         paragraphIndex: _epubViewState?._getAbsParagraphIndexBy(
           positionIndex: _epubViewState?._currentValue?.position.index ?? 0,
@@ -73,14 +66,14 @@ class EpubController {
       return _cacheTableOfContents ?? [];
     }
 
-    if (_document == null) {
+    if (document == null) {
       return [];
     }
 
     int index = -1;
 
     return _cacheTableOfContents =
-        _document!.Chapters!.fold<List<EpubViewChapter>>(
+        document!.Chapters!.fold<List<EpubViewChapter>>(
       [],
       (acc, next) {
         index += 1;
@@ -95,9 +88,8 @@ class EpubController {
     );
   }
 
-  Future<void> loadDocument(Future<EpubBook> document) {
+  void setDocument(EpubBook document) {
     this.document = document;
-    return _loadDocument(document);
   }
 
   void dispose() {
@@ -107,29 +99,6 @@ class EpubController {
     tableOfContentsListenable.dispose();
   }
 
-  Future<void> _loadDocument(Future<EpubBook> document) async {
-    isBookLoaded.value = false;
-    try {
-      loadingState.value = EpubViewLoadingState.loading;
-      _document = await document;
-      var css = _document!.Content?.Css;
-      _style = Style.fromCss(
-          css?['Styles/stylesheet.css']?.Content ??
-              css?['styles/stylesheet.css']?.Content ??
-              css?.entries.firstOrNull?.value.Content ??
-              '',
-          (_, __) => null);
-      await _epubViewState!._init();
-      tableOfContentsListenable.value = tableOfContents();
-      loadingState.value = EpubViewLoadingState.success;
-    } catch (error) {
-      _epubViewState!._loadingError = error is Exception
-          ? error
-          : Exception('An unexpected error occurred');
-      loadingState.value = EpubViewLoadingState.error;
-    }
-  }
-
   int _getChapterStartIndex(int index) =>
       index < _epubViewState!._chapterIndexes.length
           ? _epubViewState!._chapterIndexes[index]
@@ -137,11 +106,35 @@ class EpubController {
 
   void _attach(_EpubViewState epubReaderViewState) {
     _epubViewState = epubReaderViewState;
-
-    _loadDocument(document);
+    _reloadView();
   }
 
   void _detach() {
     _epubViewState = null;
+  }
+
+  void _reloadView() async {
+    isBookLoaded.value = false;
+    try {
+      loadingState.value = EpubViewLoadingState.loading;
+      var css = document!.Content?.Css;
+      _style = Style.fromCss(
+          css?['Styles/stylesheet.css']?.Content ??
+              css?['styles/stylesheet.css']?.Content ??
+              css?.entries.firstOrNull?.value.Content ??
+              '',
+          (_, __) => null);
+
+      if (_epubViewState != null) {
+        await _epubViewState?._init();
+        tableOfContentsListenable.value = tableOfContents();
+        loadingState.value = EpubViewLoadingState.success;
+      }
+    } catch (error) {
+      _epubViewState?._loadingError = error is Exception
+          ? error
+          : Exception('An unexpected error occurred');
+      loadingState.value = EpubViewLoadingState.error;
+    }
   }
 }

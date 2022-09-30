@@ -75,7 +75,7 @@ class _EpubViewState extends State<EpubView> {
         case EpubViewLoadingState.loading:
           break;
         case EpubViewLoadingState.success:
-          widget.onDocumentLoaded?.call(_controller._document!);
+          widget.onDocumentLoaded?.call(_controller.document!);
           break;
         case EpubViewLoadingState.error:
           widget.onDocumentError?.call(_loadingError);
@@ -99,14 +99,14 @@ class _EpubViewState extends State<EpubView> {
     if (_controller.isBookLoaded.value) {
       return true;
     }
-    _chapters = parseChapters(_controller._document!);
+    _chapters = parseChapters(_controller.document!);
     final parseParagraphsResult =
-        parseParagraphs(_chapters, _controller._document!.Content);
+        parseParagraphs(_chapters, _controller.document!.Content);
     _paragraphs = parseParagraphsResult.flatParagraphs;
     _chapterIndexes.addAll(parseParagraphsResult.chapterIndexes);
 
     _epubCfiReader = EpubCfiReader.parser(
-      cfiInput: _controller.epubCfi,
+      cfiInput: '',
       chapters: _chapters,
       paragraphs: _paragraphs,
     );
@@ -189,7 +189,7 @@ class _EpubViewState extends State<EpubView> {
       final chapter = _chapterByFileName(hrefFileName);
       if (chapter != null) {
         final cfi = _epubCfiReader?.generateCfiChapter(
-          book: _controller._document,
+          book: _controller.document,
           chapter: chapter,
           additional: ['/4/2'],
         );
@@ -206,7 +206,7 @@ class _EpubViewState extends State<EpubView> {
         final paragraphIndex =
             _epubCfiReader?.getParagraphIndexByElement(paragraph.element);
         final cfi = _epubCfiReader?.generateCfi(
-          book: _controller._document,
+          book: _controller.document,
           chapter: chapter,
           paragraphIndex: paragraphIndex,
         );
@@ -375,7 +375,7 @@ class _EpubViewState extends State<EpubView> {
         return widget.builders.chapterBuilder(
           context,
           widget.builders,
-          widget.controller._document!,
+          widget.controller.document!,
           widget.controller._style!,
           _chapters,
           _paragraphs,
