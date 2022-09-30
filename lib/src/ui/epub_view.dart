@@ -446,21 +446,4 @@ class _EpubViewState extends State<EpubView> {
           );
         });
   }
-
-  Future<bool> _init() async {
-    _chapters = parseChapters(widget.controller.document!);
-    final parseParagraphsResult =
-        parseParagraphs(_chapters, widget.controller.document!.Content);
-    _paragraphs = parseParagraphsResult.flatParagraphs;
-    _chapterIndexes.addAll(parseParagraphsResult.chapterIndexes);
-
-    _epubCfiReader = EpubCfiReader.parser(
-      cfiInput: _controller.epubCfi,
-      chapters: _chapters,
-      paragraphs: _paragraphs,
-    );
-    _itemPositionListener!.itemPositions.addListener(_changeListener);
-    _controller.isBookLoaded.value = true;
-    return true;
-  }
 }
