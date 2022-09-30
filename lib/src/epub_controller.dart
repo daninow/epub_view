@@ -95,6 +95,7 @@ class EpubController {
   }
 
   Future<void> loadDocument(EpubBook document) async {
+    this.document = document;
     isBookLoaded.value = false;
     try {
       loadingState.value = EpubViewLoadingState.loading;
@@ -105,7 +106,6 @@ class EpubController {
               css?.entries.firstOrNull?.value.Content ??
               '',
           (_, __) => null);
-      await _epubViewState?._init(document);
       tableOfContentsListenable.value = tableOfContents();
       loadingState.value = EpubViewLoadingState.success;
     } catch (error) {
@@ -130,9 +130,6 @@ class EpubController {
 
   void _attach(_EpubViewState epubReaderViewState) {
     _epubViewState = epubReaderViewState;
-    if (document != null) {
-      loadDocument(document!);
-    }
   }
 
   void _detach() {
