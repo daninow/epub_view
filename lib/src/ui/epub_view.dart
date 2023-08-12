@@ -333,7 +333,11 @@ class _EpubViewState extends State<EpubView> {
     final defaultBuilder = builders as EpubViewBuilders<DefaultBuilderOptions>;
     final options = defaultBuilder.options;
     style['html'] = (style['html'] ?? Style()).merge(Style(
-      padding: options.paragraphPadding as EdgeInsets?,
+      padding: HtmlPaddings(
+          top: HtmlPadding(options.paragraphPadding.vertical),
+          bottom: HtmlPadding(options.paragraphPadding.vertical),
+          left: HtmlPadding(options.paragraphPadding.horizontal),
+          right: HtmlPadding(options.paragraphPadding.horizontal)),
     ).merge(Style.fromTextStyle(options.textStyle)));
     return Column(
       children: <Widget>[
@@ -341,22 +345,24 @@ class _EpubViewState extends State<EpubView> {
           builders.chapterDividerBuilder(chapters[chapterIndex]),
         Html(
           data: paragraphs[index].element.outerHtml,
-          onLinkTap: (href, _, __, ___) => onExternalLinkPressed(href!),
+          onLinkTap: (href, _, __) => onExternalLinkPressed(href ?? ''),
           style: style,
-          customRenders: {
-            tagMatcher('img'):
-                CustomRender.widget(widget: (context, buildChildren) {
-              final url = context.tree.element!.attributes['src']!
-                  .replaceAll('../', '');
-              return Image(
-                image: MemoryImage(
-                  Uint8List.fromList(
-                    document.Content!.Images![url]!.Content!,
+          extensions: [
+            TagExtension(
+              tagsToExtend: {'img'},
+              builder: (context) {
+                final url =
+                    context.element!.attributes['src']!.replaceAll('../', '');
+                return Image(
+                  image: MemoryImage(
+                    Uint8List.fromList(
+                      document.Content!.Images![url]!.Content!,
+                    ),
                   ),
-                ),
-              );
-            }),
-          },
+                );
+              },
+            )
+          ],
         ),
       ],
     );
