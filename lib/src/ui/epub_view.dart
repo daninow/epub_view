@@ -31,12 +31,13 @@ class EpubView extends StatefulWidget {
     this.builders = const EpubViewBuilders<DefaultBuilderOptions>(
       options: DefaultBuilderOptions(),
     ),
+    this.shrinkWrap = false,
     Key? key,
   }) : super(key: key);
 
   final EpubController controller;
   final ExternalLinkPressed? onExternalLinkPressed;
-
+  final bool shrinkWrap;
   final void Function(EpubChapterViewValue? value)? onChapterChanged;
 
   /// Called when a document is loaded
@@ -49,7 +50,7 @@ class EpubView extends StatefulWidget {
   final EpubViewBuilders builders;
 
   @override
-  _EpubViewState createState() => _EpubViewState();
+  State<EpubView> createState() => _EpubViewState();
 }
 
 class _EpubViewState extends State<EpubView> {
@@ -332,12 +333,14 @@ class _EpubViewState extends State<EpubView> {
 
     final defaultBuilder = builders as EpubViewBuilders<DefaultBuilderOptions>;
     final options = defaultBuilder.options;
+
+    var paddings = options.paragraphPadding as EdgeInsets;
     style['html'] = (style['html'] ?? Style()).merge(Style(
       padding: HtmlPaddings(
-          top: HtmlPadding(options.paragraphPadding.vertical),
-          bottom: HtmlPadding(options.paragraphPadding.vertical),
-          left: HtmlPadding(options.paragraphPadding.horizontal),
-          right: HtmlPadding(options.paragraphPadding.horizontal)),
+          left: HtmlPadding(paddings.left),
+          right: HtmlPadding(paddings.right),
+          top: HtmlPadding(paddings.top),
+          bottom: HtmlPadding(paddings.bottom)),
     ).merge(Style.fromTextStyle(options.textStyle)));
     return Column(
       children: <Widget>[
@@ -349,19 +352,17 @@ class _EpubViewState extends State<EpubView> {
           style: style,
           extensions: [
             TagExtension(
-              tagsToExtend: {'img'},
-              builder: (context) {
+              tagsToExtend: {"img"},
+              builder: (imageContext) {
                 final url =
-                    context.element!.attributes['src']!.replaceAll('../', '');
+                    imageContext.attributes['src']!.replaceAll('../', '');
+                final content = Uint8List.fromList(
+                    document.Content!.Images![url]!.Content!);
                 return Image(
-                  image: MemoryImage(
-                    Uint8List.fromList(
-                      document.Content!.Images![url]!.Content!,
-                    ),
-                  ),
+                  image: MemoryImage(content),
                 );
               },
-            )
+            ),
           ],
         ),
       ],
@@ -370,7 +371,8 @@ class _EpubViewState extends State<EpubView> {
 
   Widget _buildLoaded(BuildContext context) {
     return ScrollablePositionedList.builder(
-      initialScrollIndex: _epubCfiReader?.paragraphIndexByCfiFragment ?? 0,
+      shrinkWrap: widget.shrinkWrap,
+      initialScrollIndex: _epubCfiReader!.paragraphIndexByCfiFragment ?? 0,
       itemCount: _paragraphs.length,
       itemScrollController: _itemScrollController,
       itemPositionsListener: _itemPositionListener,

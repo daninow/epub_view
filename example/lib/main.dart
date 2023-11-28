@@ -8,7 +8,7 @@ class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
@@ -30,8 +30,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Brightness get platformBrightness =>
-      MediaQueryData.fromWindow(WidgetsBinding.instance.window)
-          .platformBrightness;
+      MediaQueryData.fromView(View.of(context)).platformBrightness;
 
   void _setSystemUIOverlayStyle() {
     if (platformBrightness == Brightness.light) {
@@ -71,7 +70,7 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -81,6 +80,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     _epubReaderController = EpubController();
+    EpubDocument.openAsset('assets/New-Findings-on-Shirdi-Sai-Baba.epub')
+        .then((value) {
+      _epubReaderController.setDocument(value);
+    });
     super.initState();
   }
 
